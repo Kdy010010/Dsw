@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discussion World</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <h1>Discussion World</h1>
+    <a href="/new.html">새로운 게시글 작성</a>
+
+    <div id="discussion-list"></div>
+
+    <script>
+        // 모든 게시글 가져오기
+        async function fetchDiscussions() {
+            const response = await fetch('/api/discussions');
+            const discussions = await response.json();
+            displayDiscussions(discussions);
+        }
+
+        // 게시글 목록 보여주기
+        function displayDiscussions(discussions) {
+            const discussionList = document.getElementById('discussion-list');
+            discussionList.innerHTML = '';
+            discussions.forEach(discussion => {
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <h2>${discussion.title}</h2>
+                    <p>${discussion.content}</p>
+                    <h3>댓글</h3>
+                    <ul>${discussion.comments.map(comment => `<li>${comment}</li>`).join('')}</ul>
+                    <input type="text" id="comment-${discussion.id}" placeholder="댓글 작성">
+                    <button onclick="addComment(${discussion.id})">댓글 추가</button>
+                `;
+                discussionList.appendChild(div);
+            });
+        }
+
+        // 댓글 추가
+        async function addComment(id) {
+            const comment = document.getElementById(`comment-${id}`).value;
+            await fetch(`/api/comments`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, comment })
+            });
+            fetchDiscussions();
+        }
+
+        // 페이지 로드 시 게시글 가져오기
+        fetchDiscussions();
+    </script>
+</body>
+</html>
